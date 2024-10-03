@@ -49,8 +49,7 @@ return {
   book: savedBook,
 };
 
-    
-  }
+}
   
   // Función que verifica si un libro con el mismo título ya existe (modificado para tomar en cuenta el ID)
   private async verifyBookTitleExists(title: string, excludeId?: number): Promise<void> {

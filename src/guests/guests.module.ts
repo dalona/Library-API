@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
-import { GuestsService } from './guests.service';
-import { GuestsController } from './guests.controller';
+import { GuestService } from './guests.service';
+import { GuestController } from './guests.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Guest } from './entities/guest.entity';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
-  controllers: [GuestsController],
-  providers: [GuestsService],
+  imports: [TypeOrmModule.forFeature([Guest])],
+  controllers: [GuestController],
+  providers: [GuestService,JwtService],
+  exports:[TypeOrmModule]
 })
 export class GuestsModule {}

@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { Book } from './entities/book.entity';
 import { SearchBooksDto } from './dto/search-book.dto';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/common/enums/roles.decorator';
+import { Role } from 'src/common/enums/role.enum';
 
 @Controller('books')
 export class BooksController {
@@ -11,6 +14,8 @@ export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(Role.Guest)
   createBook(@Body() createBookDto: CreateBookDto) {
     return this.booksService.createBook(createBookDto);
   }

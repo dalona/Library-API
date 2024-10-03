@@ -112,5 +112,5 @@ describe('BooksService Integration', () => {
     await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
   });
 
-  // Puedes agregar más pruebas para otros métodos como update, remove, searchBooks y findAllBooks
+
 });
