@@ -8,6 +8,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GuestsModule } from '../guests/guests.module';
 import { GuestService } from '../guests/guests.service';
+import { Guest } from 'src/guests/entities/guest.entity';
+import { RolesGuard } from './guards/roles.guard';
 
 
 @Module({
@@ -16,19 +18,17 @@ import { GuestService } from '../guests/guests.service';
     PassportModule.register({defaultStrategy:'jwt'}),
     JwtModule.registerAsync({
       imports:[ConfigModule],
-      inject:[ConfigService],
       useFactory:(configService:ConfigService)=>{      
         return {
           secret:configService.get('JWT_SECRET'),
-          signOptions:{
-          expiresIn:'2h'
-        }
-      }
-    }
-    })
+          signOptions:{expiresIn:'2h'}
+      }},
+      inject:[ConfigService],
+    }),
+    TypeOrmModule.forFeature([Guest]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, GuestService, JwtStrategy],
-  exports:[TypeOrmModule, JwtStrategy, PassportModule, JwtModule]
+  providers: [AuthService, GuestService, JwtStrategy,RolesGuard],
+  exports:[TypeOrmModule, JwtStrategy, PassportModule, JwtModule,RolesGuard]
 })
 export class AuthModule {}

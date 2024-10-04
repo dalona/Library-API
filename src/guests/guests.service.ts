@@ -9,6 +9,9 @@ import { RegisterUserDto } from 'src/auth/dto/register.dto';
 
 @Injectable()
 export class GuestService {
+  createQueryBuilder(arg0: string) {
+      throw new Error('Method not implemented.');
+  }
   
   constructor(
     @InjectRepository(Guest)

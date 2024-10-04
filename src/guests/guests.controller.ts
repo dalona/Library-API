@@ -8,7 +8,7 @@ import {
   Get,
   Param
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
 import { GuestService } from './guests.service';
 import { Guest } from './entities/guest.entity';
 import { CreateGuestDto } from './dto/create-guest.dto';
@@ -44,7 +44,7 @@ export class GuestController {
   }
 
   @Patch('update/')
-  @UseGuards(JwtAuthGuard)
+
   async update(
     @Body('email') email: string,
     @Body() updateGuestDto: UpdateGuestDto,
@@ -54,7 +54,7 @@ export class GuestController {
 
  
   @Delete('')
-  @UseGuards(JwtAuthGuard)
+
   remove(@Body('email') email: string): Promise<string>{
     return this.guestService.remove(email);
   }

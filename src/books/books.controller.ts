@@ -7,15 +7,17 @@ import { SearchBooksDto } from './dto/search-book.dto';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/common/enums/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
+import { AuthGuard } from '@nestjs/passport';
+
 
 @Controller('books')
+@UseGuards(AuthGuard('jwt'),RolesGuard)// Usa el guard estándar y RolesGuard
 export class BooksController {
 
   constructor(private readonly booksService: BooksService) {}
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles(Role.Guest)
+  @Roles(Role.Admin)
   createBook(@Body() createBookDto: CreateBookDto) {
     return this.booksService.createBook(createBookDto);
   }
@@ -31,10 +33,6 @@ export class BooksController {
     return await this.booksService.searchBooks(searchBooksDto);
   }
   
-  /*/books?author=John Doe&genre=Science Fiction
-  books?fromDate=2022-01-01&toDate=2023-01-01
-  books?author=Jane Austen&fromDate=1800-01-01&toDate=1817-01-01*/
-
 
 
   @Get(':id')
@@ -43,11 +41,13 @@ export class BooksController {
   }
 
   @Patch(':id')
+  @Roles(Role.Admin)
    async update(@Param('id') id: number, @Body() updateBookDto: UpdateBookDto) {
     return this.booksService.update(+id, updateBookDto);
   }
 
   @Delete(':id')
+  @Roles(Role.Admin)
   async remove(@Param('id') id: number) {
    await this.booksService.remove(+id);
   }

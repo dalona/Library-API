@@ -43,10 +43,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     BooksModule,
     GuestsModule,AuthModule],
   controllers: [AppController],
-  providers: [{
-    provide: APP_GUARD,
-    useClass: RolesGuard,
-  },
+  providers: [
    AppService, ],
 })
 export class AppModule { }

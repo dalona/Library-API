@@ -13,12 +13,12 @@ export class Guest {
     @PrimaryGeneratedColumn('increment')
     id: number;
 
-    @Column('varchar',{
-        length: 150,
-        nullable: false,
-        name: 'role', default:'user'}) 
-
-        role: Role;
+    @Column({
+        type: 'enum',
+        enum: Role,
+        default: Role.Guest,
+    })
+    role: Role;
 
     @ApiProperty({
         example: 'Pepito Perez',

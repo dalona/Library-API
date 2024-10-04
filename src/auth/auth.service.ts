@@ -4,86 +4,76 @@ import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-
 import { loginUserDto } from './dto/login.dto';
 import { Guest } from '../guests/entities/guest.entity';
 
-
 @Injectable()
 export class AuthService {
+  constructor(
+    @InjectRepository(Guest)
+    private readonly guestRepository: Repository<Guest>,
+    private readonly jwtService: JwtService,
+  ) {}
 
-    constructor(
-        @InjectRepository(Guest) private readonly guestRepository:Repository<Guest>,
-        private readonly jwtService:JwtService,
-    ){}
+  async login(loginDto: loginUserDto) {
+    const { password, email } = loginDto;
 
+    console.log('Attempting login for email:', email);
 
+    try {
+      const guest = await this.guestRepository.createQueryBuilder('guest')
+        .where('guest.email = :email', { email })
+        .select(['guest.name', 'guest.email', 'guest.password', 'guest.role'])
+        .getOne();
 
-    // async login(loginDto:loginUserDto){
-    //     const {password, email} = loginDto
+      if (!guest) {
+        console.error('User not found:', email);
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
-    //     console.error('Trying to log in with email:', email);
+      console.log('User found:', guest.email);
 
+      const isPasswordValid = await this.validatePassword(password, guest.password);
+      if (!isPasswordValid) {
+        console.error('Invalid password for user:', email);
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
-    //     const guest = await this.guestRepository.createQueryBuilder("guest").leftJoinAndSelect("guest.role", "role").where("guest.email = :email", { email }).select(["guest.name", "guest.email", "guest.password", "role.name"]).getOne();
-    //     if(!guest || !bcrypt.compareSync(password, guest.password))
-    //         throw new UnauthorizedException('Credentials are not valid')
-    //     return {
-    //         name: guest.name,
-    //         email: guest.email,
-    //         role: guest.role,
-    //         token:this.getJwtToken({email: guest.email})
-    //     }
-    // }
+      const token = this.generateJwtToken({ email: guest.email });
+      console.log('Token generated for user:', email);
 
-    // private getJwtToken(payload:JwtPayload){
-    //     const token = this.jwtService.sign(payload);
-    //     return token
-    // }
-
-    async login(loginDto: loginUserDto) {
-        const { password, email } = loginDto;
-    
-        // Log para ver las credenciales proporcionadas
-        console.error('Trying to log in with email:', email);
-    
-        const guest = await this.guestRepository.createQueryBuilder("guest")
-            //.leftJoinAndSelect("guest.role", "role")
-            .where("guest.email = :email", { email })
-            .select(["guest.name", "guest.email", "guest.password", "guest.role"])
-            .getOne();
-    
-        // Log para ver si el usuario fue encontrado
-        if (!guest) {
-            console.error('User not found with email:', email);
-            throw new UnauthorizedException('Credentials are not valid');
-        }
-    
-        // Log para ver si la contraseña coincide
-        if (!bcrypt.compareSync(password, guest.password)) {
-            console.error('Invalid password for user:', email);
-            throw new UnauthorizedException('Credentials are not valid');
-        }
-    
-        const token = this.getJwtToken({ email: guest.email });
-        
-        // Log para ver el token generado
-        console.error('Token generated for user:', email, 'Token:', token);
-        console.log(guest)
-        return {
-            name: guest.name,
-            email: guest.email,
-            role: guest.role,
-            token: token,
-        };
+      return this.buildLoginResponse(guest, token);
+    } catch (error) {
+      console.error('Error during login process:', error);
+      throw error;
     }
-    
-    private getJwtToken(payload: JwtPayload) {
-        const token = this.jwtService.sign(payload);
-        return token;
+  }
+
+  private async validatePassword(plainTextPassword: string, hashedPassword: string): Promise<boolean> {
+    try {
+      return await bcrypt.compare(plainTextPassword, hashedPassword);
+    } catch (error) {
+      console.error('Error comparing passwords:', error);
+      return false;
     }
-    
+  }
 
+  private generateJwtToken(payload: JwtPayload): string {
+    try {
+      return this.jwtService.sign(payload);
+    } catch (error) {
+      console.error('Error generating JWT token:', error);
+      throw new Error('Failed to generate authentication token');
+    }
+  }
 
+  private buildLoginResponse(guest: Guest, token: string) {
+    console.log('Building login response for user:', guest.email);
+    return {
+      name: guest.name,
+      email: guest.email,
+      role: guest.role,
+      token: token,
+    };
+  }
 }
-
